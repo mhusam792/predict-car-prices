@@ -1,17 +1,13 @@
-from src.config.core import load_config
-from src.models.trainer import Trainer
-from src.utils.logger import setup_logger
+from src.config.loader import load_config
+from src.models.training import train
+from src.utils.helpers import setup_logger
 
 
-def main():
+def main() -> None:
     setup_logger()
-
-    config = load_config("src/configs/data.yml")
-
-    trainer = Trainer(config)
-    trainer.train()
-
-    print("Training completed")
+    config = load_config()
+    metrics = train(config)
+    print(f"Training complete. Metrics: {metrics}")
 
 
 if __name__ == "__main__":
