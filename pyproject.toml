@@ -3,19 +3,25 @@ name = "car-prices"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "dvc>=3.67.1",
     "feature-engine>=1.9.4",
     "joblib>=1.5.3",
     "lightgbm>=4.6.0",
     "matplotlib>=3.10.9",
+    "mlflow==3.13.0",
     "numpy>=2.4.6",
     "optuna>=4.9.0",
-    "pandas>=3.0.3",
+    "pandas<3",
+    "protobuf<4.21.0",
     "scikit-learn>=1.9.0",
     "scipy>=1.17.1",
     "seaborn>=0.13.2",
     "tqdm>=4.68.1",
     "xgboost>=3.2.0",
 ]
+
+
+# mlflow ui --backend-store-uri sqlite:///mlflow.db
+# python -m src.train
