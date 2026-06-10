@@ -2,7 +2,6 @@ import logging
 from typing import NamedTuple
 
 import pandas as pd
-from mlflow.tracking import MlflowClient
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
@@ -11,8 +10,6 @@ from src.data.loader import load_dataframe
 from src.data.preprocessing import build_preprocessing_pipeline
 from src.models.evaluation import evaluate_model
 from src.models.factory import build_model
-from src.tracking import mlflow_utils as mlflow_utils
-from src.tracking.registry import promote_if_better, register_model
 from src.utils.helpers import save_artifact
 
 logger = logging.getLogger(__name__)
@@ -72,56 +69,37 @@ def fit_pipeline(
 # ---------------------------------------------------------------------------
 
 
-def run_experiment(config: AppConfig, splits: TrainTestSplit) -> dict[str, float]:
-    """
-    Fit model, log to MLflow, register, and promote if better.
+def run_experiment(
+    config: AppConfig,
+    splits: TrainTestSplit,
+) -> dict[str, float]:
 
-    Returns the evaluation metrics dict.
-    All MLflow interaction is explicit and localised here.
-    """
     X_train, X_test, y_train, y_test = splits
-    model_name = config.model.name.lower()
 
     pipeline = build_preprocessing_pipeline(config)
-    X_train_processed = fit_pipeline(pipeline, X_train, y_train)
+
+    X_train_processed = fit_pipeline(
+        pipeline,
+        X_train,
+        y_train,
+    )
+
     X_test_processed = pipeline.transform(X_test)
 
     model = build_model(config)
 
-    with mlflow_utils.start_run() as active_run:
-        model.fit(X_train_processed, y_train)
+    model.fit(X_train_processed, y_train)
 
-        mlflow_utils.log_params(config.model.params)
+    metrics = evaluate_model(
+        model,
+        X_train_processed,
+        X_test_processed,
+        y_train,
+        y_test,
+    )
 
-        metrics = evaluate_model(
-            model, X_train_processed, X_test_processed, y_train, y_test
-        )
-        mlflow_utils.log_metrics(metrics)
-        logger.info("Metrics: %s", metrics)
+    logger.info("Metrics: %s", metrics)
 
-        mlflow_utils.log_model(model, model_name=model_name)
-
-        # -------------------------------------------------------------------
-        # Register + promote
-        # -------------------------------------------------------------------
-        run_id = active_run.info.run_id
-        new_version = register_model(run_id=run_id, model_name=model_name)
-
-        metric_name = "test_r2"
-        if metric_name not in metrics:
-            raise ValueError(f"'{metric_name}' not found in metrics: {list(metrics)}")
-
-        client = MlflowClient()
-        decision = promote_if_better(
-            client=client,
-            model_name=model_name,
-            new_version=new_version,
-            new_metric=float(metrics[metric_name]),
-            metric_name=metric_name,
-        )
-        logger.info("Registry decision: %s", decision)
-
-    # Persist artifacts locally for inference
     save_artifact(model, "artifacts/model.joblib")
     save_artifact(pipeline, "artifacts/pipeline.joblib")
 
@@ -137,10 +115,8 @@ def train(config: AppConfig) -> dict[str, float]:
     """
     Top-level training entry point.
 
-    Orchestrates: load → prepare → configure mlflow → run experiment.
     Returns final metrics for programmatic consumption (e.g. CI checks).
     """
-    mlflow_utils.configure_mlflow(config)
 
     df = load_dataframe(config.main_data_path)
     splits = prepare_data(df, config)

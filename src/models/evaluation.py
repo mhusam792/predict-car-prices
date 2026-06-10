@@ -13,7 +13,7 @@ def evaluate_model(
     """
     Compute regression metrics on train and test splits.
 
-    Returns a flat dict ready to pass directly to mlflow.log_metrics().
+    Returns a flat dictionary of evaluation metrics.
     """
     pred_train = model.predict(X_train)
     pred_test = model.predict(X_test)

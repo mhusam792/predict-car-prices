@@ -20,12 +20,13 @@ class RareLabelConfig(BaseModel):
 class ModelConfig(BaseModel):
     name: str
     experiment_name: str
-    tracking_uri: str = "sqlite:///mlflow.db"
+    tracking_uri: str = "sqlite:///datasets/mlflow/mlflow.db"
     params: dict[str, Any]
 
 
 class AppConfig(BaseModel):
     """Root config. Replaces ValidateInputs — more descriptive name."""
+
     main_data_path: str
     target: str
 
