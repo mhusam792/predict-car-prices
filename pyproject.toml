@@ -23,5 +23,5 @@ dependencies = [
 ]
 
 
-# mlflow ui --backend-store-uri sqlite:///datasets/mlflow/mlflow.db
+# mlflow ui --backend-store-uri sqlite:///datasets/mlflow/database/mlflow.db
 # python -m src.train

@@ -1,16 +1,23 @@
 import logging
 from typing import NamedTuple
+import tempfile
+import os
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
+from sklearn.utils import estimator_html_repr
 
-from src.config.schema import AppConfig
+from src.config.schemas.app_schema import AppConfig
 from src.data.loader import load_dataframe
 from src.data.preprocessing import build_preprocessing_pipeline
 from src.models.evaluation import evaluate_model
 from src.models.factory import build_model
-from src.utils.helpers import save_artifact
+
+import mlflow
+
+from src.tracking.track import setup_mlflow
+from src.tracking.register import register_with_aliases
 
 logger = logging.getLogger(__name__)
 
@@ -76,32 +83,53 @@ def run_experiment(
 
     X_train, X_test, y_train, y_test = splits
 
+    setup_mlflow(config)
+    # mlflow.autolog()
+
     pipeline = build_preprocessing_pipeline(config)
-
-    X_train_processed = fit_pipeline(
-        pipeline,
-        X_train,
-        y_train,
-    )
-
-    X_test_processed = pipeline.transform(X_test)
 
     model = build_model(config)
 
-    model.fit(X_train_processed, y_train)
+    # Log model Parameters
+    mlflow.log_params(config.model.params.model_dump())
+
+    full_pipeline = Pipeline(
+        steps=[
+            ("preprocessing", pipeline),
+            ("model", model),
+        ]
+    )
+
+    full_pipeline.fit(X_train, y_train)
+
+    name = config.model.name.lower()
+    if name == "lgbm":
+        mlflow.lightgbm.log_model(full_pipeline, artifact_path="model")
+    if name == "xgb":
+        mlflow.xgboost.log_model(full_pipeline, artifact_path="model")
 
     metrics = evaluate_model(
-        model,
-        X_train_processed,
-        X_test_processed,
+        full_pipeline,
+        X_train,
+        X_test,
         y_train,
         y_test,
     )
 
+    # Log model metrics
+    mlflow.log_metrics(metrics)
+
     logger.info("Metrics: %s", metrics)
 
-    save_artifact(model, "artifacts/model.joblib")
-    save_artifact(pipeline, "artifacts/pipeline.joblib")
+    # =========================
+    # CHAMPION / CHALLENGER LOGIC
+    # =========================
+    register_with_aliases(
+        model=full_pipeline,
+        model_name=config.model.name,
+        test_mae=metrics["test_mae"],
+        artifact_path="model",
+    )
 
     return metrics
 

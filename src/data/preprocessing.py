@@ -12,7 +12,7 @@ from sklearn.preprocessing import (
 )
 from feature_engine.encoding import RareLabelEncoder
 
-from src.config.schema import AppConfig
+from src.config.schemas.app_schema import AppConfig
 from src.features.engineering import create_features
 
 # ---------------------------------------------------------------------------
@@ -87,6 +87,18 @@ def build_imputer() -> IterativeImputer:
 
 
 # ---------------------------------------------------------------------------
+# Round floating catigories after imputing
+# ---------------------------------------------------------------------------
+
+def round_float_cat(config: AppConfig) -> ColumnTransformer:
+    return ColumnTransformer(
+        transformers=[("round", FunctionTransformer(np.round), list(config.cat_cols))],
+        remainder="passthrough",
+        verbose_feature_names_out=False,
+    ).set_output(transform="pandas")
+
+
+# ---------------------------------------------------------------------------
 # Full end-to-end preprocessing pipeline
 # ---------------------------------------------------------------------------
 
@@ -102,6 +114,7 @@ def build_preprocessing_pipeline(config: AppConfig) -> Pipeline:
         [
             ("preprocess", build_column_transformer(config)),
             ("imputer", build_imputer()),
+            ("round_cat", round_float_cat(config)),
             ("feature_eng", FunctionTransformer(create_features)),
         ]
     ).set_output(transform="pandas")

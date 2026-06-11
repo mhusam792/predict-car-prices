@@ -21,6 +21,8 @@ def evaluate_model(
     return {
         "train_mae": mean_absolute_error(y_train, pred_train),
         "test_mae": mean_absolute_error(y_test, pred_test),
+        "train_rmse": float(np.sqrt(mean_squared_error(y_train, pred_train))),
         "test_rmse": float(np.sqrt(mean_squared_error(y_test, pred_test))),
+        "train_r2": r2_score(y_train, pred_train),
         "test_r2": r2_score(y_test, pred_test),
     }
