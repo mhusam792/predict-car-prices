@@ -1,12 +1,10 @@
 import logging
 from typing import NamedTuple
-import tempfile
-import os
+
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.utils import estimator_html_repr
 
 from src.config.schemas.app_schema import AppConfig
 from src.data.loader import load_dataframe
@@ -104,9 +102,9 @@ def run_experiment(
 
     name = config.model.name.lower()
     if name == "lgbm":
-        mlflow.lightgbm.log_model(full_pipeline, artifact_path="model")
+        mlflow.lightgbm.log_model(full_pipeline, name="model")
     if name == "xgb":
-        mlflow.xgboost.log_model(full_pipeline, artifact_path="model")
+        mlflow.xgboost.log_model(full_pipeline, name="model")
 
     metrics = evaluate_model(
         full_pipeline,
@@ -126,7 +124,7 @@ def run_experiment(
     # =========================
     register_with_aliases(
         model=full_pipeline,
-        model_name=config.model.name,
+        model_name=config.mlflow.registry.model_name + "_" + config.model.name,
         test_mae=metrics["test_mae"],
         artifact_path="model",
     )

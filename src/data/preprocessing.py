@@ -81,7 +81,7 @@ def build_imputer() -> IterativeImputer:
             random_state=42,
             n_jobs=-1,
         ),
-        max_iter=10,
+        max_iter=1,
         random_state=42,
     )
 

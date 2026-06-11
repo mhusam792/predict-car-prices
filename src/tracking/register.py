@@ -11,31 +11,43 @@ def register_with_aliases(
     test_mae: float,
     artifact_path: str = "model",
     metric_name: str = "test_mae",
-):
+) -> None:
     client = MlflowClient()
 
-    run = mlflow.active_run()
-    run_id = run.info.run_id if run else None
+    model_info = mlflow.sklearn.log_model(
+        model,
+        name=artifact_path,
+        registered_model_name=model_name,
+    )
 
-    # log model under current run (no new run)
-    mlflow.sklearn.log_model(model, artifact_path=artifact_path)
-
-    model_uri = f"runs:/{run_id}/{artifact_path}"
-
-    mv = mlflow.register_model(model_uri=model_uri, name=model_name)
+    version = model_info.registered_model_version
 
     client.set_registered_model_alias(
-        name=model_name, alias="challenger", version=mv.version
+        name=model_name,
+        alias=CHALLENGER_ALIAS,
+        version=version,
     )
 
     try:
-        champion_version = client.get_model_version_by_alias(model_name, "champion")
+        champion_version = client.get_model_version_by_alias(
+            model_name,
+            CHAMPION_ALIAS,
+        )
 
-        champion_run = client.get_run(champion_version.run_id)
-        champion_mae = champion_run.data.metrics.get(metric_name)
+        champion_run = client.get_run(
+            champion_version.run_id,
+        )
+
+        champion_mae = champion_run.data.metrics.get(
+            metric_name,
+        )
 
     except Exception:
         champion_mae = None
 
     if champion_mae is None or test_mae < champion_mae:
-        client.set_registered_model_alias(model_name, "champion", mv.version)
+        client.set_registered_model_alias(
+            name=model_name,
+            alias=CHAMPION_ALIAS,
+            version=version,
+        )
