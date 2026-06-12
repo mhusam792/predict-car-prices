@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "dvc>=3.67.1",
     "feature-engine>=1.9.4",
+    "gradio>=6.18.0",
     "joblib>=1.5.3",
     "lightgbm>=4.6.0",
     "matplotlib>=3.10.9",
@@ -24,4 +25,6 @@ dependencies = [
 
 
 # mlflow ui --backend-store-uri sqlite:///datasets/mlflow/database/mlflow.db
+# uvicorn src.api.app:app --reload
+# python -m src.ui.app
 # python -m src.train

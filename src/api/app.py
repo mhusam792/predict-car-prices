@@ -9,7 +9,6 @@ config = load_config()
 mlflow.set_tracking_uri(config.mlflow.tracking.uri)
 
 MODEL_NAME = config.mlflow.registry.model_name + "_" + config.model.name
-
 model = mlflow.pyfunc.load_model(model_uri=f"models:/{MODEL_NAME}@champion")
 
 app = FastAPI()

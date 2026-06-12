@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class CarFeatures(BaseModel):
@@ -14,3 +14,12 @@ class CarFeatures(BaseModel):
     Make: Optional[str] = None
 
     year: Optional[int] = None
+
+    @model_validator(mode="after")
+    def check_null_limit(self):
+        null_count = sum(1 for v in self.model_dump().values() if v is None)
+
+        if null_count > 4:
+            raise ValueError("Please provide at least 5 fields to get a prediction.")
+
+        return self
