@@ -1,7 +1,8 @@
 # model.yml
-name: lgbm
-
-experiment_name: car-price-prediction
+model: lgbm
+type: regression
+version: 1
+model_name: car_price_model
 
 params:
   n_estimators: 1000

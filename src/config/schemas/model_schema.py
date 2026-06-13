@@ -14,8 +14,9 @@ class ModelParams(BaseModel):
     subsample: float
     colsample_bytree: float
 
-
 class ModelConfig(BaseModel):
-    name: ModelName
-    experiment_name: str
+    model: ModelName
+    type: str
+    version: int
+    model_name: str
     params: ModelParams

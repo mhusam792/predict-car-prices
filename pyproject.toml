@@ -3,7 +3,7 @@ name = "car-prices"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "dvc>=3.67.1",
     "feature-engine>=1.9.4",
@@ -22,9 +22,3 @@ dependencies = [
     "tqdm>=4.68.1",
     "xgboost>=3.2.0",
 ]
-
-
-# mlflow ui --backend-store-uri sqlite:///datasets/mlflow/database/mlflow.db
-# uvicorn src.api.app:app --reload
-# python -m src.ui.app
-# python -m src.train

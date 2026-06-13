@@ -13,7 +13,7 @@ def build_model(config: AppConfig) -> LGBMRegressor | XGBRegressor:
     Raises ValueError for unsupported model names so callers get a clear
     message at configuration time, not buried in a generic AttributeError.
     """
-    name = config.model.name.lower()
+    name = config.model.model.lower()
 
     if name == "lgbm":
         return LGBMRegressor(**config.model.params.model_dump())

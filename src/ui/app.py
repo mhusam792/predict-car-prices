@@ -2,10 +2,7 @@ import os
 import requests
 import gradio as gr
 
-API_URL = os.getenv(
-    "API_URL",
-    "http://localhost:8000/predict",
-)
+API_URL = "http://127.0.0.1:8000/predict"
 
 
 def predict_price(
@@ -59,4 +56,4 @@ ui = gr.Interface(
 )
 
 if __name__ == "__main__":
-    ui.launch(server_name="0.0.0.0", server_port=7860)
+    ui.launch()

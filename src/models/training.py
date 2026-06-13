@@ -11,18 +11,9 @@ from src.data.loader import load_dataframe
 from src.data.preprocessing import build_preprocessing_pipeline
 from src.models.evaluation import evaluate_model
 from src.models.factory import build_model
-
-import mlflow
-
-from src.tracking.track import setup_mlflow
-from src.tracking.register import register_with_aliases
+from src.utils.helpers import save_artifact
 
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# Data helpers
-# ---------------------------------------------------------------------------
 
 
 class TrainTestSplit(NamedTuple):
@@ -51,11 +42,6 @@ def prepare_data(df: pd.DataFrame, config: AppConfig) -> TrainTestSplit:
     return TrainTestSplit(X_train, X_test, y_train, y_test)
 
 
-# ---------------------------------------------------------------------------
-# Fit helpers
-# ---------------------------------------------------------------------------
-
-
 def fit_pipeline(
     pipeline: Pipeline, X_train: pd.DataFrame, y_train: pd.Series
 ) -> pd.DataFrame:
@@ -69,11 +55,6 @@ def fit_pipeline(
     return X_processed
 
 
-# ---------------------------------------------------------------------------
-# Core experiment runner
-# ---------------------------------------------------------------------------
-
-
 def run_experiment(
     config: AppConfig,
     splits: TrainTestSplit,
@@ -81,16 +62,11 @@ def run_experiment(
 
     X_train, X_test, y_train, y_test = splits
 
-    setup_mlflow(config)
-    # mlflow.autolog()
-
     pipeline = build_preprocessing_pipeline(config)
 
     model = build_model(config)
 
     # Log model Parameters
-    mlflow.log_params(config.model.params.model_dump())
-
     full_pipeline = Pipeline(
         steps=[
             ("preprocessing", pipeline),
@@ -100,12 +76,6 @@ def run_experiment(
 
     full_pipeline.fit(X_train, y_train)
 
-    name = config.model.name.lower()
-    if name == "lgbm":
-        mlflow.lightgbm.log_model(full_pipeline, name="model")
-    if name == "xgb":
-        mlflow.xgboost.log_model(full_pipeline, name="model")
-
     metrics = evaluate_model(
         full_pipeline,
         X_train,
@@ -114,27 +84,22 @@ def run_experiment(
         y_test,
     )
 
-    # Log model metrics
-    mlflow.log_metrics(metrics)
+    model_name = (
+        config.model.model_name
+        + "_"
+        + config.model.model
+        + "_"
+        + config.model.type
+        + "_"
+        + str(config.model.version)
+        + ".joblib"
+    )
+    save_artifact(obj=full_pipeline, path=f"artifacts/models/{model_name}")
 
+    # Log model metrics
     logger.info("Metrics: %s", metrics)
 
-    # =========================
-    # CHAMPION / CHALLENGER LOGIC
-    # =========================
-    register_with_aliases(
-        model=full_pipeline,
-        model_name=config.mlflow.registry.model_name + "_" + config.model.name,
-        test_mae=metrics["test_mae"],
-        artifact_path="model",
-    )
-
     return metrics
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 
 def train(config: AppConfig) -> dict[str, float]:

@@ -1,15 +1,13 @@
-import mlflow
 import pandas as pd
 
 from fastapi import FastAPI
 from src.api.schemas import CarFeatures
 from src.config.loader import load_config
+from src.utils.helpers import load_model
 
 config = load_config()
-mlflow.set_tracking_uri(config.mlflow.tracking.uri)
+MODEL_PATH = "artifacts/models/car_price_model_lgbm_regression_1.joblib"
 
-MODEL_NAME = config.mlflow.registry.model_name + "_" + config.model.name
-model = mlflow.pyfunc.load_model(model_uri=f"models:/{MODEL_NAME}@champion")
 
 app = FastAPI()
 
@@ -24,6 +22,7 @@ def predict(features: CarFeatures):
 
     df = pd.DataFrame([features.model_dump()])
 
+    model = load_model(MODEL_PATH)
     prediction = model.predict(df)
 
     return {"predicted_price": float(prediction[0])}
