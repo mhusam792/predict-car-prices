@@ -1,12 +1,12 @@
-# loader.py
+# src/build_model/config/loader.py
 from pathlib import Path
 
 import yaml
 from pydantic import ValidationError
 
-from src.config.schemas.app_schema import (
+from src.build_model.config.schemas.app_schema import (
     AppConfig,
-)  # was: from src.data.yml_validator import ValidateInputs
+)
 
 
 def _load_yaml(path: str | Path) -> dict:
@@ -20,9 +20,9 @@ def _load_yaml(path: str | Path) -> dict:
 
 
 def load_config(
-    data_path: str | Path = "src/config/configs/data.yml",
-    model_path: str | Path = "src/config/configs/model.yml",
-    mlflow_path: str | Path = "src/config/configs/mlflow.yml",
+    data_path: str | Path = "src/build_model/config/configs/data.yml",
+    model_path: str | Path = "src/build_model/config/configs/model.yml",
+    mlflow_path: str | Path = "src/build_model/config/configs/mlflow.yml",
 ) -> AppConfig:
 
     try:

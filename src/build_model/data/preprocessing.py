@@ -12,8 +12,8 @@ from sklearn.preprocessing import (
 )
 from feature_engine.encoding import RareLabelEncoder
 
-from src.config.schemas.app_schema import AppConfig
-from src.features.engineering import create_features
+from src.build_model.config.schemas.app_schema import AppConfig
+from src.build_model.features.engineering import create_features
 
 # ---------------------------------------------------------------------------
 # Leaf pipeline builders
@@ -89,6 +89,7 @@ def build_imputer() -> IterativeImputer:
 # ---------------------------------------------------------------------------
 # Round floating catigories after imputing
 # ---------------------------------------------------------------------------
+
 
 def round_float_cat(config: AppConfig) -> ColumnTransformer:
     return ColumnTransformer(

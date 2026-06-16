@@ -1,0 +1,29 @@
+services:
+  build_model:
+    image: car-price-base
+    container_name: build_model
+    volumes:
+      - artifacts:/app/artifacts
+    tty: true
+    stdin_open: true
+    
+
+  api:
+    image: car-reg-api
+    container_name: car_reg_api_app
+    volumes:
+      - artifacts:/app/artifacts
+    ports:
+      - "8000:8000"
+
+  ui:
+    image: car-reg-ui
+    container_name: car_reg_ui
+    ports:
+      - "7860:7860"
+    depends_on:
+      - api
+  
+volumes:
+  artifacts:
+    external: true

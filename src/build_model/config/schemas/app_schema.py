@@ -3,12 +3,12 @@
 from pydantic import BaseModel
 from pathlib import Path
 
-from src.config.schemas.data_schema import (
+from src.build_model.config.schemas.data_schema import (
     SplitConfig,
     RareLabelConfig,
 )
-from src.config.schemas.model_schema import ModelConfig
-from src.config.schemas.mlflow_schema import MLflowConfig
+from src.build_model.config.schemas.model_schema import ModelConfig
+from src.build_model.config.schemas.mlflow_schema import MLflowConfig
 
 
 class AppConfig(BaseModel):

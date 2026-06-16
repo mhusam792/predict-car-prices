@@ -1,24 +1,37 @@
 [project]
 name = "car-prices"
 version = "0.1.0"
-description = "Add your description here"
+description = "Car price prediction system"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = [
-    "dvc>=3.67.1",
-    "feature-engine>=1.9.4",
-    "gradio>=6.18.0",
+
+dependencies = []
+
+[project.optional-dependencies]
+
+train = [
     "joblib>=1.5.3",
     "lightgbm>=4.6.0",
-    "matplotlib>=3.10.9",
     "mlflow==3.13.0",
     "numpy>=2.4.6",
-    "optuna>=4.9.0",
     "pandas<3",
-    "protobuf<4.21.0",
     "scikit-learn>=1.9.0",
     "scipy>=1.17.1",
-    "seaborn>=0.13.2",
     "tqdm>=4.68.1",
     "xgboost>=3.2.0",
+    "feature-engine>=1.9.4",
+    "optuna>=4.9.0",
+    "dvc>=3.67.1",
+    "matplotlib>=3.10.9",
+    "seaborn>=0.13.2",
+    "protobuf<4.21.0",
 ]
+
+# API layer (FastAPI serving)
+api = ["fastapi>=0.110", "uvicorn>=0.30"]
+
+# UI layer (Gradio dashboard)
+ui = ["gradio>=4.0"]
+
+# dev tools
+dev = ["pytest", "black", "ruff"]

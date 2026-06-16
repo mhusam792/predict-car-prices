@@ -1,5 +1,5 @@
-from src.config.loader import load_config
-from src.models.training import train
+from src.build_model.config.loader import load_config
+from src.build_model.models.training import train
 from src.utils.helpers import setup_logger
 
 

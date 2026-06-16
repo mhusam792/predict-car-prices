@@ -6,11 +6,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from src.config.schemas.app_schema import AppConfig
-from src.data.loader import load_dataframe
-from src.data.preprocessing import build_preprocessing_pipeline
-from src.models.evaluation import evaluate_model
-from src.models.factory import build_model
+from src.build_model.config.schemas.app_schema import AppConfig
+from src.build_model.data.loader import load_dataframe
+from src.build_model.data.preprocessing import build_preprocessing_pipeline
+from src.build_model.models.evaluation import evaluate_model
+from src.build_model.models.factory import build_model
 from src.utils.helpers import save_artifact
 
 logger = logging.getLogger(__name__)

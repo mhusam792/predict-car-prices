@@ -1,7 +1,7 @@
 from lightgbm import LGBMRegressor
 from xgboost import XGBRegressor
 
-from src.config.schemas.app_schema import AppConfig
+from src.build_model.config.schemas.app_schema import AppConfig
 
 _SUPPORTED_MODELS = {"lgbm", "xgb"}
 

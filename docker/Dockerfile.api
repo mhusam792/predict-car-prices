@@ -1,0 +1,15 @@
+# docker/Dockerfile.build_model
+FROM car-price-base:latest
+
+WORKDIR /app
+
+COPY pyproject.toml .
+
+RUN pip install ".[api]"
+
+COPY src/api /app/src/api
+COPY src/utils /app/src/utils
+
+EXPOSE 8000
+
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,15 @@
+# docker/Dockerfile.build_model
+FROM car-price-base:latest
+
+WORKDIR /app
+
+COPY pyproject.toml .
+
+RUN pip install ".[ui]"
+
+COPY src/ui /app/src/ui
+COPY src/utils /app/src/utils
+
+EXPOSE 8000
+
+CMD ["python", "-m", "src.ui.app"]
