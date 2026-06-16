@@ -1,5 +1,8 @@
 services:
   build_model:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.base
     image: car-price-base
     container_name: build_model
     volumes:
@@ -9,6 +12,9 @@ services:
     
 
   api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
     image: car-reg-api
     container_name: car_reg_api_app
     volumes:
@@ -17,6 +23,9 @@ services:
       - "8000:8000"
 
   ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
     image: car-reg-ui
     container_name: car_reg_ui
     ports:
