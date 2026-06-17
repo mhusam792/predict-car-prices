@@ -1,19 +1,24 @@
 # src/api/app.py
-import pandas as pd
 
+import pandas as pd
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+import mlflow.pyfunc
 
 from src.api.schemas import CarFeatures
-from src.utils.helpers import load_model
 
-# Loading model
-MODEL_PATH = "artifacts/models/car_price_model_lgbm_regression_1.joblib"
+
+MODEL_NAME = "car_reg_price"  # اسم الـ registered model في MLflow
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.model = load_model(MODEL_PATH)
+
+    # 🔥 Load latest production/champion model from MLflow Registry
+    model_uri = f"models:/{MODEL_NAME}@champion"
+
+    app.state.model = mlflow.pyfunc.load_model(model_uri)
+
     yield
 
 

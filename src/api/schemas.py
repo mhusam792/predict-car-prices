@@ -13,7 +13,7 @@ class CarFeatures(BaseModel):
     fuelType: Optional[str] = None
     Make: Optional[str] = None
 
-    year: Optional[int] = None
+    year: Optional[float] = None
 
     @model_validator(mode="after")
     def check_null_limit(self):

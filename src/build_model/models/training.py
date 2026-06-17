@@ -1,5 +1,6 @@
 import logging
 from typing import NamedTuple
+import os
 
 
 import pandas as pd
@@ -11,7 +12,9 @@ from src.build_model.data.loader import load_dataframe
 from src.build_model.data.preprocessing import build_preprocessing_pipeline
 from src.build_model.models.evaluation import evaluate_model
 from src.build_model.models.factory import build_model
-from src.utils.helpers import save_artifact
+
+import mlflow
+from mlflow.models import infer_signature
 
 logger = logging.getLogger(__name__)
 
@@ -74,32 +77,59 @@ def run_experiment(
         ]
     )
 
-    full_pipeline.fit(X_train, y_train)
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+    mlflow.set_experiment("car_price_experiment")
 
-    metrics = evaluate_model(
-        full_pipeline,
-        X_train,
-        X_test,
-        y_train,
-        y_test,
-    )
+    with mlflow.start_run(run_name="car_price_experiment"):
 
-    model_name = (
-        config.model.model_name
-        + "_"
-        + config.model.model
-        + "_"
-        + config.model.type
-        + "_"
-        + str(config.model.version)
-        + ".joblib"
-    )
-    save_artifact(obj=full_pipeline, path=f"artifacts/models/{model_name}")
+        # -----------------
+        # Log parameters
+        # -----------------
+        mlflow.log_param("model_name", config.model.model_name)
+        mlflow.log_param("model_type", config.model.model)
+        mlflow.log_param("model_version", config.model.version)
+        mlflow.log_params(params=config.model.params.model_dump())
 
-    # Log model metrics
-    logger.info("Metrics: %s", metrics)
+        # -----------------
+        # Train
+        # -----------------
+        full_pipeline.fit(X_train, y_train)
 
-    return metrics
+        # -----------------
+        # Evaluate
+        # -----------------
+        metrics = evaluate_model(
+            full_pipeline,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+        )
+
+        # -----------------
+        # Log metrics
+        # -----------------
+        for metric_name, value in metrics.items():
+            mlflow.log_metric(metric_name, value)
+
+        # -----------------
+        # Log model (VERY IMPORTANT)
+        # -----------------
+        signature = infer_signature(X_train, full_pipeline.predict(X_train))
+
+        mlflow.sklearn.log_model(
+            full_pipeline,
+            name="model",
+            signature=signature,
+            input_example=X_train.head(5),
+        )
+        # -----------------
+        # Optional: log dataset size
+        # -----------------
+        mlflow.log_param("train_size", len(X_train))
+        mlflow.log_param("test_size", len(X_test))
+
+        logger.info("Metrics: %s", metrics)
 
 
 def train(config: AppConfig) -> dict[str, float]:

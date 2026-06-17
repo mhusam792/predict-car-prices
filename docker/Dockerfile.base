@@ -11,6 +11,8 @@ RUN pip install --upgrade pip
 COPY pyproject.toml .
 RUN pip install ".[train]"
 
+RUN pip install boto3
+
 COPY src/build_model /app/src/build_model
 COPY src/utils /app/src/utils
 COPY datasets/raw /app/datasets/raw
