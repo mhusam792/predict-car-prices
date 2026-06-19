@@ -1,0 +1,127 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mlflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflowdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - mlflow-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow -d mlflowdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: mlflow-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - mlflow-minio:/data
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlflow
+    restart: unless-stopped
+    depends_on:
+      minio:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      MLFLOW_TRACKING_URI: postgresql+psycopg2://mlflow:mlflow@postgres:5432/mlflowdb
+    ports:
+      - "5000:5000"
+    command:
+      - mlflow
+      - server
+      - --backend-store-uri
+      - postgresql+psycopg2://mlflow:mlflow@postgres:5432/mlflowdb
+      - --default-artifact-root
+      - s3://mlflow-artifacts
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --serve-artifacts
+      - --allowed-hosts
+      - "*"
+      - --cors-allowed-origins
+      - "*"
+
+  # build_model:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/Dockerfile.base
+  #   image: car-price-base
+  #   container_name: build_model
+  #   environment:
+  #     MLFLOW_TRACKING_URI: http://mlflow:5000
+  #   depends_on:
+  #     - mlflow
+  #   tty: true
+  #   stdin_open: true
+
+  build_model:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.base
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    depends_on:
+      - mlflow
+    tty: true
+    stdin_open: true
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: car-reg-api
+    container_name: car_reg_api_app
+    ports:
+      - "8000:8000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    depends_on:
+      - mlflow
+
+  ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
+    image: car-reg-ui
+    container_name: car_reg_ui
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./src/ui:/app/src/ui
+      - ./src/utils:/app/src/utils
+    depends_on:
+      - api
+  
+volumes:
+  mlflow-db:
+  mlflow-minio:

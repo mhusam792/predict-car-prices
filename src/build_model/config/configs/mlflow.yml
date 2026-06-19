@@ -1,0 +1,18 @@
+# mlflow.yml
+tracking:
+  uri: "sqlite:///datasets/mlflow/database/mlflow.db"
+
+experiment:
+  name: "car_price_prediction"
+
+artifacts:
+  location: "datasets/mlflow/artifacts"
+
+registry:
+  model_name: "car_price_model"
+
+logging:
+  autolog: true
+  log_models: true
+  log_input_examples: true
+  log_model_signatures: true

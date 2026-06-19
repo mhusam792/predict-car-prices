@@ -19,6 +19,10 @@ def save_artifact(obj, path: str | Path) -> None:
     logging.getLogger(__name__).info("Saved artifact → %s", path)
 
 
+def load_model(model):
+    return joblib.load(model)
+
+
 def get_rare_label_summary(
     df: pd.DataFrame,
     threshold: float = 0.001,
