@@ -65,19 +65,6 @@ services:
       - --cors-allowed-origins
       - "*"
 
-  # build_model:
-  #   build:
-  #     context: .
-  #     dockerfile: docker/Dockerfile.base
-  #   image: car-price-base
-  #   container_name: build_model
-  #   environment:
-  #     MLFLOW_TRACKING_URI: http://mlflow:5000
-  #   depends_on:
-  #     - mlflow
-  #   tty: true
-  #   stdin_open: true
-
   build_model:
     build:
       context: .
